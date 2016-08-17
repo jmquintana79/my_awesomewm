@@ -62,7 +62,7 @@ modkey = "Mod4"
 
 -- -----------------------------------------------------------------------------------
 --[[
-	VICIOUS
+	VICIOUS Widgets
 --]]
 
 -- DATE
@@ -129,12 +129,37 @@ vicious.register(netwidget, vicious.widgets.net,
 
 -- Disk usage widget
 diskwidget = widget({ type = 'imagebox' })
-diskwidget.image = image(home .. "/.config/awesome/du.png")
+diskwidget.image = image(home .. "/.config/awesome/icons/du.png")
 disk = require("diskusage")
 -- the first argument is the widget to trigger the diskusage
 -- the second/third is the percentage at which a line gets orange/red
 -- true = show only local filesystems
 disk.addToWidget(diskwidget, 75, 90, false)
+
+
+
+-- ips widget: show internal and external ips as a tooltip on
+-- an icon.
+
+-- function to call bash script and return its output.
+function get_ips()
+    local fd = io.popen(home .. "/.config/awesome/bin/get_ips.sh")
+    local str = fd:read("*all")
+    return str 
+end
+
+-- Set up an icon
+ipsimg = widget({ type = "imagebox" })
+ipsimg.image = image(home .. "/.config/awesome/icons/network.png")
+
+-- Set up the tooltip, initializing to the output of get_ips()
+ips_t = awful.tooltip({ objects = { ipsimg},})
+ips_t:set_text(get_ips())
+
+-- Set up a timer to refresh every hour. Useful for ADSL connections.
+mytimer = timer({ timeout = 3600 })
+mytimer:add_signal("timeout", function () ips_t:set_text(get_ips()) end)
+mytimer:start()
 
 
 -- -----------------------------------------------------------------------------------
@@ -286,6 +311,7 @@ for s = 1, screen.count() do
         },
         mylayoutbox[s],
         diskwidget,
+        ipsimg,
         mytextclock,
         battwidget,
         memwidget, 
